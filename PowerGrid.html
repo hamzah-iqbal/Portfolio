@@ -1,0 +1,389 @@
+<!DOCTYPE HTML>
+<!--
+	Massively by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>US Power Grid Project</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+		<style>
+			pre {
+				background-color: #f4f4f4;
+				border: 1px solid #ddd;
+				padding: 10px;
+				overflow-x: auto;
+			}
+		</style>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<a href="index.html" class="logo">Back</a>
+					</header>
+
+				<!-- Nav -->
+					<nav id="nav">
+						<ul class="links">
+							<li class="active"><a href="generic.html">ETL</a></li>
+							<li><a href="index.html">Visuals and DAX</a></li>
+							<li><a href="elements.html">Data Files</a></li>
+						</ul>
+						<ul class="icons">
+							
+							<li><a href="#" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
+						</ul>
+					</nav>
+
+				<!-- Main -->
+					<div id="main">
+
+						<!-- Post -->
+							<section class="post">
+								<header class="major">
+									<h1>Lets go through the<br/> 
+										ETL </h1>
+										<h3>You can download the data files to follow the steps.</h3>
+								</header>
+								<p>To begin the ETL process, the dataset containing electric outage incidents from 2002 to 2023 was stored in an Excel file, with each year's data in a separate sheet. The first step was to import this Excel file into Power BI, which serves as the primary tool for data extraction, transformation, and loading.</p>
+								<h2>Source Identification and Import</h2>
+									<ol>
+										<li>Open Power BI and go to the "Home" tab.</li>
+										<li>Select "Get Data" and choose "Excel."</li>
+										<li>Load the <code>DOE_Electric_Disturbance_Events.xlsx</code> file.</li>
+										<li>Select sheets for each year (2002-2023) and any additional relevant sheets like "EVENT" and "NERC."</li>
+									</ol>
+    						<p>This process imports all the necessary data into Power BI for further ETL steps.</p>
+
+							<h2>Data Cleaning and Transformation</h2>
+    							<h3>Year 2002: Initial Data Cleaning</h3>
+    							<p>For the year 2002, the raw data was cleaned and transformed in Power BI as follows:</p>
+    							<ol>
+    							    <li><strong>Extracted</strong> data from the 2002 sheet.</li>
+    							    <li><strong>Promoted headers</strong> using Table.PromoteHeaders.</li>
+    							    <li><strong>Changed data types</strong> for consistency.</li>
+    							    <li><strong>Removed blank rows</strong> using Table.SelectRows.</li>
+    							    <li><strong>Promoted headers again</strong> to reflect data structure changes.</li>
+    							    <li><strong>Renamed columns</strong> for clarity and adjusted data types.</li>
+    							</ol>
+
+								<h3>Power Query M Code for the given steps<br>(Similar steps should be followed for the years 2002-2010)</h3>
+    						<pre>
+let
+    Source = Excel.Workbook(File.Contents("D:\Maven\DOE_Electric_Disturbance_Events.xlsx"), null, true),
+    #"2022_Sheet" = Source{[Item="2022",Kind="Sheet"]}[Data],
+    #"Promoted Headers" = Table.PromoteHeaders(#"2022_Sheet", [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"OE-417 Electric Emergency and Disturbance Report - Calendar Year 2022", type text}, {"Column2", type text}, {"Column3", type any}, {"Column4", type any}, {"Column5", type any}, {"Column6", type text}, {"Column7", type text}, {"Column8", type text}, {"Column9", type text}, {"Column10", type text}, {"Column11", type any}}),
+    #"Promoted Headers1" = Table.PromoteHeaders(#"Changed Type", [PromoteAllScalars=true]),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Promoted Headers1",{{"Month", type text}, {"Date Event Began", type date}, {"Time Event Began", type datetime}, {"Date of Restoration", type any}, {"Time of Restoration", type any}, {"Area Affected", type text}, {"NERC Region", type text}, {"Alert Criteria", type text}, {"Event Type", type text}, {"Demand Loss (MW)", type text}, {"Number of Customers Affected", type any}}),
+    #"Removed Blank Rows" = Table.SelectRows(#"Changed Type1", each not List.IsEmpty(List.RemoveMatchingItems(Record.FieldValues(_), {"", null}))),
+    #"Removed Columns" = Table.RemoveColumns(#"Removed Blank Rows",{"Month"})
+in
+    #"Removed Columns"
+    						</pre>	
+
+							<body>
+								<h3>Year 2011</h3>
+								<p>For the year 2011, the data was cleaned and transformed in Power BI as follows:</p>
+								<ol>
+									<li><strong>Imported</strong> data from the 2011 sheet.</li>
+									<li><strong>Promoted headers</strong> using Table.PromoteHeaders.</li>
+									<li><strong>Changed data types</strong> for proper formatting.</li>
+									<li><strong>Removed blank rows</strong> similar to 2002.</li>
+									<li><strong>Replaced placeholder dates</strong> in the "Date of Restoration" field.</li>
+									<li><strong>Filtered out non-date strings</strong> from the "Date Event Began" column.</li>
+									<li><strong>Removed unnecessary columns</strong> (e.g., "Column10" to "Column19").</li>
+									<li><strong>Added a custom column</strong> "Alert Criteria" with null values.</li>
+								</ol>
+							</body>
+							<h3>Power Query M Code for the given steps</h3>
+    						<pre>
+	let
+	Source = Excel.Workbook(File.Contents("D:\Maven\DOE_Electric_Disturbance_Events.xlsx"), null, true),
+	#"2011_Sheet" = Source{[Item="2011",Kind="Sheet"]}[Data],
+	#"Promoted Headers" = Table.PromoteHeaders(#"2011_Sheet", [PromoteAllScalars=true]),
+	#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"OE-417 Electric Emergency and Disturbance (OE-417) Events, 20111", type any}, {"Column2", type any}, {"Column3", type any}, {"Column4", type any}, {"Column5", type text}, {"Column6", type text}, {"Column7", type text}, {"Column8", type any}, {"Column9", type any}, {"Column10", type any}, {"Column11", type any}, {"Column12", type any}, {"Column13", type any}, {"Column14", type any}, {"Column15", type any}, {"Column16", type any}, {"Column17", type any}, {"Column18", type any}, {"Column19", type any}}),
+	#"Removed Blank Rows" = Table.SelectRows(#"Changed Type", each not List.IsEmpty(List.RemoveMatchingItems(Record.FieldValues(_), {"", null}))),
+	#"Promoted Headers1" = Table.PromoteHeaders(#"Removed Blank Rows", [PromoteAllScalars=true]),
+	#"Replaced Value" = Table.ReplaceValue(#"Promoted Headers1",#date(2077, 1, 1),#date(2011, 1, 1),Replacer.ReplaceValue,{"Date of Restoration"}),
+	#"Changed Type1" = Table.TransformColumnTypes(#"Replaced Value",{{"Date Event Began", type any}, {"Time Event Began", type datetime}, {"Date of Restoration", type date}, {"Time of Restoration", type datetime}, {"Area Affected", type text}, {"NERC Region", type text}, {"Event Type", type text}, {"Demand Loss (MW)", type any}, {"Number of Customers Affected", type any}, {"Column10", type any}, {"Column11", type any}, {"Column12", type any}, {"Column13", type any}, {"Column14", type any}, {"Column15", type any}, {"Column16", type any}, {"Column17", type any}, {"Column18", type any}, {"Column19", type any}}),
+	#"Filtered Rows" = Table.SelectRows(#"Changed Type1", each ([Date Event Began] <> "1 Source: Submissions of all Electric Emergency Incident and Disturbance Reports (OE-417), http://www.oe.netl.doe.gov/oe417.aspx" and [Date Event Began] <> "April" and [Date Event Began] <> "August" and [Date Event Began] <> "December" and [Date Event Began] <> "February  " and [Date Event Began] <> "January  " and [Date Event Began] <> "July" and [Date Event Began] <> "June" and [Date Event Began] <> "March" and [Date Event Began] <> "May" and [Date Event Began] <> "November" and [Date Event Began] <> "October" and [Date Event Began] <> "September")),
+	#"Removed Columns" = Table.RemoveColumns(#"Filtered Rows",{"Column10", "Column11", "Column12", "Column13", "Column14", "Column15", "Column16", "Column17", "Column18", "Column19"}),
+	#"Added Custom" = Table.AddColumn(#"Removed Columns", "Alert Criteria", each null)
+in
+	#"Added Custom"
+							
+    						</pre>	
+
+							
+								<h2>Data Cleaning and Transformation</h2>
+								<h3>Year 2022</h3>
+								<p>For the year 2022, the data was processed in Power BI with the following steps:</p>
+								<ol>
+									<li><strong>Extracted</strong> data from the 2022 sheet.</li>
+									<li><strong>Promoted headers</strong> using Table.PromoteHeaders.</li>
+									<li><strong>Applied initial data type conversions</strong> for columns.</li>
+									<li><strong>Promoted headers again</strong> after type conversion.</li>
+									<li><strong>Made further data type adjustments</strong> to key columns for accurate analysis.</li>
+									<li><strong>Removed blank rows</strong> with missing or irrelevant data.</li>
+									<li><strong>Removed the "Month" column</strong> as it was redundant.</li>
+								</ol>
+								<h3>Power Query M Code for the given steps <br> (Similar steps for 2011-2023 with necessary changes based on format changes)</h3>
+								<pre>
+									let
+    Source = Excel.Workbook(File.Contents("D:\Maven\DOE_Electric_Disturbance_Events.xlsx"), null, true),
+    #"2022_Sheet" = Source{[Item="2022",Kind="Sheet"]}[Data],
+    #"Promoted Headers" = Table.PromoteHeaders(#"2022_Sheet", [PromoteAllScalars=true]),
+    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"OE-417 Electric Emergency and Disturbance Report - Calendar Year 2022", type text}, {"Column2", type text}, {"Column3", type any}, {"Column4", type any}, {"Column5", type any}, {"Column6", type text}, {"Column7", type text}, {"Column8", type text}, {"Column9", type text}, {"Column10", type text}, {"Column11", type any}}),
+    #"Promoted Headers1" = Table.PromoteHeaders(#"Changed Type", [PromoteAllScalars=true]),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Promoted Headers1",{{"Month", type text}, {"Date Event Began", type date}, {"Time Event Began", type datetime}, {"Date of Restoration", type any}, {"Time of Restoration", type any}, {"Area Affected", type text}, {"NERC Region", type text}, {"Alert Criteria", type text}, {"Event Type", type text}, {"Demand Loss (MW)", type text}, {"Number of Customers Affected", type any}}),
+    #"Removed Blank Rows" = Table.SelectRows(#"Changed Type1", each not List.IsEmpty(List.RemoveMatchingItems(Record.FieldValues(_), {"", null}))),
+    #"Removed Columns" = Table.RemoveColumns(#"Removed Blank Rows",{"Month"})
+in
+    #"Removed Columns"
+
+															
+							</pre>
+
+							<h2>Combining Tables and Data Cleaning (2002-2010)</h2>
+							<h3>Steps:</h3>
+							<ol>
+								<li><strong>Combining Tables:</strong>
+									<p>Data from the years 2002 to 2010 was combined into a single table using <code>Table.Combine</code>.</p>
+								</li>
+								<li><strong>Data Cleaning:</strong>
+									<ul>
+										<li>The "Date" column was converted to text, and unnecessary characters were replaced or removed using <code>Table.ReplaceValue</code>.</li>
+										<li>Rows containing null values or irrelevant notes (e.g., "preliminary estimates") were filtered out using <code>Table.SelectRows</code>.</li>
+									</ul>
+								</li>
+								<li><strong>Date and Time Parsing:</strong>
+									<ul>
+										<li>The "Date" column was parsed into a proper date format using <code>Date.From(DateTimeZone.From(_))</code>.</li>
+										<li>The "Time" column was adjusted to handle values like "Evening", "Midnight", and "Noon", converting them into appropriate times with <code>Time.From(DateTimeZone.From(_))</code>.</li>
+										<li>The "Restoration" column was parsed, managing various formats and inconsistent date or time entries.</li>
+									</ul>
+								</li>
+								<li><strong>Custom Date/Time Parsing:</strong>
+									<ul>
+										<li>A custom column "Restoration2" was added to clean up the "Restoration" values by appending the year if necessary.</li>
+										<li>Another custom column was created to parse the "Restoration2" values into a DateTime format using multiple potential date and time formats.</li>
+									</ul>
+								</li>
+								<li><strong>Column Renaming and Reordering:</strong>
+									<p>Columns were renamed for consistency and reordered to follow a logical sequence, organizing the table more effectively.</p>
+								</li>
+								<li><strong>Final Adjustments:</strong>
+									<ul>
+										<li>The "Year" column was removed, as it was no longer necessary after parsing the dates.</li>
+										<li>An "Alert Criteria" column was added with null values for further categorization or filtering if required.</li>
+										<li>Further text replacements were made to clean up the "Demand Loss (MW)" column.</li>
+									</ul>
+								</li>
+							</ol>
+							<p>This entire process ensured that the data from 2002-2010 was consistently formatted, cleaned, and prepared for analysis. The result was a cohesive table ready for downstream processing or visualization.</p>
+							<h3>Power Query M Code 2002-2010</h3>
+						<pre>
+	let
+    Source = Table.Combine({#"2002", #"2003", #"2004", #"2005", #"2006", #"2007", #"2008", #"2009", #"2010"}),
+    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Date", type text}}),
+    #"Replaced Value" = Table.ReplaceValue(#"Changed Type","/","-",Replacer.ReplaceText,{"Date"}),
+    #"Filtered Rows" = Table.SelectRows(#"Replaced Value", each ([Date] <> null and [Date] <> "  Note: Estimates for 2004 and 2005 are preliminary.  " and [Date] <> "  Note: Estimates for 2007 are preliminary." and [Date] <> "  Note: Estimates for 2008 are preliminary." and [Date] <> "  Note: Estimates for 2009 are preliminary." and [Date] <> "  Source: Form OE-417, ""Electric Emergency Incident and Disturbance Report.""" and [Date] <> "(Continued)" and [Date] <> "* Information as provided by the respondent.  The occurrence is, however, associated with the " and [Date] <> "1 = Estimated Values." and [Date] <> "April" and [Date] <> "April    " and [Date] <> "August" and [Date] <> "August   " and [Date] <> "Causes of the August 14 Blackout in the United States and Canada, November 2003 at  " and [Date] <> "Date" and [Date] <> "December" and [Date] <> "December " and [Date] <> "February" and [Date] <> "February " and [Date] <> "http:--www.energy.gov-engine-content.do.  " and [Date] <> "January" and [Date] <> "January  " and [Date] <> "July" and [Date] <> "July     " and [Date] <> "June" and [Date] <> "June     " and [Date] <> "March" and [Date] <> "March    " and [Date] <> "massive blackout of August 14, 2003.  For further information, refer to the Interim Report: " and [Date] <> "May" and [Date] <> "May      " and [Date] <> "None" and [Date] <> "Note: North American Electric Reliability Council region acronyms are defined in the glossary." and [Date] <> "November" and [Date] <> "November " and [Date] <> "October" and [Date] <> "October  " and [Date] <> "September" and [Date] <> "Source:  Form EIA-417, ""Electric Emergency Incident and Disturbance Report""" and [Date] <> "Source:  Form EIA-417, ""Electric Emergency Incident and Disturbance Report.""" and [Date] <> "Source:  Form OE-417, ""Electric Emergency Incident and Disturbance Report.""" and [Date] <> "Table B.1.Major Disturbances and Unusual Occurrences, Year-to-Date through December 2007" and [Date] <> "Table B.2." and [Date] <> "Table B.2.  Major Disturbances and Unusual Occurrences, Year-to-Date through December 2006" and [Date] <> "Table B.2.  Major Disturbances and Unusual Occurrences, Year-to-Date through December 2006+A55" and [Date] <> "Table B.2.  Major Disturbances and Unusual Occurrences, Year-to-Date through December 2008" and [Date] <> "Table B.2.  Major Disturbances and Unusual Occurrences, Year-to-Date through December 2009" and [Date] <> "Table B.2.  Major Disturbances and Unusual Occurrences, Year-to-Date through December 2010" and [Date] <> "[1] Estimated values.")),
+    #"Replaced Value1" = Table.ReplaceValue(#"Filtered Rows","--","-",Replacer.ReplaceText,{"Date"}),
+    #"Filtered Rows1" = Table.SelectRows(#"Replaced Value1", each ([Date] <> "  Note: Estimates for 2010 are preliminary.")),
+    #"Parsed Date" = Table.TransformColumns(#"Filtered Rows1",{{"Date", each Date.From(DateTimeZone.From(_)), type date}}),
+    #"Replaced Value2" = Table.ReplaceValue(#"Parsed Date","Evening",#time(5, 0, 0),Replacer.ReplaceValue,{"Time"}),
+    #"Replaced Value3" = Table.ReplaceValue(#"Replaced Value2","Midnight",#time(0, 0, 0),Replacer.ReplaceValue,{"Time"}),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Replaced Value3",{{"Time", type text}}),
+    #"Replaced Value7" = Table.ReplaceValue(#"Changed Type1","5:78","5:30",Replacer.ReplaceText,{"Time"}),
+    #"Replaced Value6" = Table.ReplaceValue(#"Replaced Value7","noon","PM",Replacer.ReplaceText,{"Time"}),
+    #"Replaced Value4" = Table.ReplaceValue(#"Replaced Value6","Approximately ","",Replacer.ReplaceText,{"Time"}),
+    #"Filtered Rows2" = Table.SelectRows(#"Replaced Value4", each ([Time] <> "N/A" and [Time] <> "Ongoing")),
+    #"Replaced Value5" = Table.ReplaceValue(#"Filtered Rows2",".","",Replacer.ReplaceText,{"Time"}),
+    #"Parsed Time" = Table.TransformColumns(#"Replaced Value5",{{"Time", each Time.From(DateTimeZone.From(_)), type time}}),
+    #"Inserted Year" = Table.AddColumn(#"Parsed Time", "Year", each Date.Year([Date]), Int64.Type),
+    #"Changed Type2" = Table.TransformColumnTypes(#"Inserted Year",{{"Restoration", type text}}),
+    #"Replaced Value8" = Table.ReplaceValue(#"Changed Type2","/","-",Replacer.ReplaceText,{"Restoration"}),
+    #"Changed Type3" = Table.TransformColumnTypes(#"Replaced Value8",{{"Year", type text}}),
+    #"Replaced Value13" = Table.ReplaceValue(#"Changed Type3","(Trans Only)","",Replacer.ReplaceText,{"Restoration"}),
+    #"Replaced Value15" = Table.ReplaceValue(#"Replaced Value13","(Trans. Only)","",Replacer.ReplaceText,{"Restoration"}),
+    #"Replaced Value14" = Table.ReplaceValue(#"Replaced Value15","midnight","am",Replacer.ReplaceText,{"Restoration"}),
+    #"Replaced Value10" = Table.ReplaceValue(#"Replaced Value14","noon","pm",Replacer.ReplaceText,{"Restoration"}),
+    #"Replaced Value11" = Table.ReplaceValue(#"Replaced Value10","Noon","12:00:00 pm",Replacer.ReplaceText,{"Restoration"}),
+    #"Replaced Value12" = Table.ReplaceValue(#"Replaced Value11",".","",Replacer.ReplaceText,{"Restoration"}),
+    #"Added Custom" = Table.AddColumn(#"Replaced Value12", "Restoration2", each if Text.Contains([Restoration],"-")or Text.Contains([Restoration],"NA") then [Restoration]
+else [Restoration] &[Year]),
+    #"Reordered Columns" = Table.ReorderColumns(#"Added Custom",{"Date", "NERC Region", "Time", "Type of Disturbance", "Loss (megawatts)", "Number of Customers Affected", "Area Affected", "Year", "Restoration", "Restoration2"}),
+    #"Filtered Rows3" = Table.SelectRows(#"Reordered Columns", each ([Restoration] <> "Approximately" and [Restoration] <> "Approximately " and [Restoration] <> "NA" and [Restoration] <> "Ongoing" and [Restoration] <> "Unknown")),
+    #"Replaced Value9" = Table.ReplaceValue(#"Filtered Rows3"," ","",Replacer.ReplaceText,{"Restoration2"}),
+    #"Added Custom1" = Table.AddColumn(#"Replaced Value9", "Custom", each try DateTime.FromText([Restoration2],[Format="%M-%d-yyyyh:mm:sstt"])
+otherwise 
+try DateTime.FromText([Restoration2],[Format="%h:mm:ssttMMMMdyyyy"])
+otherwise 
+try DateTime.FromText([Restoration2],[Format="%h:mm:ssttMMMMdyyyy"])
+otherwise
+try DateTime.FromText([Restoration2],[Format="%M-dd-yy,%h:mmtt"])
+otherwise 
+try DateTime.FromText([Restoration2],[Format="%M-%d-yy,hhtt"])
+otherwise 
+try DateTime.FromText([Restoration2],[Format="%M-%d-yyyy"])
+otherwise 
+try DateTime.FromText([Restoration2],[Format="%MM-%dd-yyyy,%h:mmtt"])
+otherwise 
+try DateTime.FromText([Restoration2],[Format="%M-%dd-yyyy,%h:mmtt"])
+otherwise 
+try DateTime.FromText([Restoration2],[Format="%MM-%dd-yyhh:mmtt"])
+otherwise 
+try DateTime.FromText([Restoration2],[Format="%M-%d-yyh:mmtt"])
+otherwise 
+try DateTime.FromText([Restoration2],[Format="%h:mmttMMMMddyyyy"])
+otherwise [Restoration]),
+    #"Renamed Columns" = Table.RenameColumns(#"Added Custom1",{{"Custom", "Restoration Date/Time"}}),
+    #"Inserted Date" = Table.AddColumn(#"Renamed Columns", "Date.1", each DateTime.Date([#"Restoration Date/Time"]), type date),
+    #"Inserted Time" = Table.AddColumn(#"Inserted Date", "Time.1", each if Text.Contains([Restoration2],"AM",Comparer.OrdinalIgnoreCase) or 
+Text.Contains([Restoration2],"PM",Comparer.OrdinalIgnoreCase) 
+then 
+DateTime.Time([#"Restoration Date/Time"])
+else null),
+    #"Renamed Columns1" = Table.RenameColumns(#"Inserted Time",{{"Date", "Date Event Began"}}),
+    #"Reordered Columns1" = Table.ReorderColumns(#"Renamed Columns1",{"Date Event Began", "Time", "NERC Region", "Type of Disturbance", "Loss (megawatts)", "Number of Customers Affected", "Area Affected", "Year", "Restoration", "Restoration2", "Restoration Date/Time", "Date.1", "Time.1"}),
+    #"Renamed Columns2" = Table.RenameColumns(#"Reordered Columns1",{{"Time", "Time Event Began"}}),
+    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns2",{"Restoration", "Restoration2", "Restoration Date/Time"}),
+    #"Renamed Columns3" = Table.RenameColumns(#"Removed Columns",{{"Date.1", "Date of Restoration"}, {"Time.1", "Time of Restoration"}}),
+    #"Reordered Columns2" = Table.ReorderColumns(#"Renamed Columns3",{"Date Event Began", "Time Event Began", "Area Affected", "NERC Region", "Type of Disturbance", "Loss (megawatts)", "Number of Customers Affected", "Year", "Date of Restoration", "Time of Restoration"}),
+    #"Renamed Columns4" = Table.RenameColumns(#"Reordered Columns2",{{"Type of Disturbance", "Event Type"}, {"Loss (megawatts)", "Demand Loss (MW)"}}),
+    #"Reordered Columns3" = Table.ReorderColumns(#"Renamed Columns4",{"Date Event Began", "Time Event Began", "Date of Restoration", "Time of Restoration", "Area Affected", "NERC Region", "Event Type", "Demand Loss (MW)", "Number of Customers Affected", "Year"}),
+    #"Removed Columns1" = Table.RemoveColumns(#"Reordered Columns3",{"Year"}),
+    #"Added Custom2" = Table.AddColumn(#"Removed Columns1", "Alert Criteria", each null),
+    #"Changed Type4" = Table.TransformColumnTypes(#"Added Custom2",{{"Time of Restoration", type time}, {"Demand Loss (MW)", type text}}),
+    #"Replaced Value16" = Table.ReplaceValue(#"Changed Type4","Approx. ","",Replacer.ReplaceText,{"Demand Loss (MW)"}),
+    #"Replaced Value17" = Table.ReplaceValue(#"Replaced Value16","peak ","",Replacer.ReplaceText,{"Demand Loss (MW)"}),
+    #"Replaced Value18" = Table.ReplaceValue(#"Replaced Value17","Est. ","",Replacer.ReplaceText,{"Demand Loss (MW)"})
+in
+    #"Replaced Value18"
+						</pre>
+						
+						<h2>Combining Tables and Data Cleaning (2011-2023)</h2>
+						
+						<ol>
+							<li><strong>Combining Tables:</strong>
+								<p>Data from 2011 to 2023 was combined into a single table using <code>Table.Combine</code>.</p>
+							</li>
+							<li><strong>Type Conversion:</strong>
+								<p>The columns "Date Event Began", "Time Event Began", "Date of Restoration", and "Time of Restoration" were converted to appropriate data types (date and time).</p>
+							</li>
+							<li><strong>Data Cleaning:</strong>
+								<ul>
+									<li>Values such as "Ongoing", "Unknown", and other erroneous data (e.g., "2077" and "44641") were replaced with nulls or corrected values.</li>
+									<li>The "Date of Restoration" column was further cleaned by extracting text before delimiters and removing unnecessary text.</li>
+								</ul>
+							</li>
+							<li><strong>Date and Time Parsing:</strong>
+								<ul>
+									<li>The "Date of Restoration" column was parsed into a proper date format.</li>
+									<li>The "Time of Restoration" column was parsed into a proper time format.</li>
+								</ul>
+							</li>
+						</ol>
+						<p>This process ensures that the data from 2011-2023 is clean, consistently formatted, and ready for analysis.</p>
+						</section>
+						<pre>let
+							Source = Table.Combine({#"2011", #"2012", #"2013", #"2014", #"2015", #"2016", #"2017", #"2018", #"2019", #"2020", #"2021", #"2022", #"2023"}),
+							#"Changed Type" = Table.TransformColumnTypes(Source, {
+							{"Date Event Began", type date}, 
+							{"Time Event Began", type time}, 
+							{"Date of Restoration", type text}, 
+							{"Time of Restoration", type text}
+						}),
+							#"Replaced Value" = Table.ReplaceValue(#"Changed Type","Ongoing",null,Replacer.ReplaceValue,{"Date of Restoration"}),
+							#"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","Unknown",null,Replacer.ReplaceValue,{"Date of Restoration"}),
+							#"Replaced Value2" = Table.ReplaceValue(#"Replaced Value1","Unknown ",null,Replacer.ReplaceValue,{"Date of Restoration"}),
+							#"Replaced Value9" = Table.ReplaceValue(#"Replaced Value2","2077","2011",Replacer.ReplaceText,{"Date of Restoration"}),
+							#"Extracted Text Before Delimiter" = Table.TransformColumns(#"Replaced Value9", {{"Date of Restoration", each Text.BeforeDelimiter(_, " "), type text}}),
+							#"Replaced Value3" = Table.ReplaceValue(#"Extracted Text Before Delimiter","",null,Replacer.ReplaceValue,{"Date of Restoration"}),
+							#"Replaced Value4" = Table.ReplaceValue(#"Replaced Value3","Unkonwn",null,Replacer.ReplaceValue,{"Date of Restoration"}),
+							#"Replaced Value5" = Table.ReplaceValue(#"Replaced Value4","44641","3-23-22",Replacer.ReplaceText,{"Date of Restoration"}),
+							#"Parsed Date" = Table.TransformColumns(#"Replaced Value5",{{"Date of Restoration", each Date.From(DateTimeZone.From(_)), type date}}),
+							#"Replaced Value6" = Table.ReplaceValue(#"Parsed Date","Ongoing",null,Replacer.ReplaceValue,{"Time of Restoration"}),
+							#"Replaced Value7" = Table.ReplaceValue(#"Replaced Value6","Unknown",null,Replacer.ReplaceValue,{"Time of Restoration"}),
+							#"Replaced Value8" = Table.ReplaceValue(#"Replaced Value7","Unknown ",null,Replacer.ReplaceValue,{"Time of Restoration"}),
+							#"Parsed Time" = Table.TransformColumns(#"Replaced Value8",{{"Time of Restoration", each Time.From(DateTimeZone.From(_)), type time}})
+						in
+							#"Parsed Time"</pre>
+					</div>
+
+				<!-- Footer -->
+					<footer id="footer">
+						<section>
+							<form method="post" action="#">
+								<div class="fields">
+									<div class="field">
+										<label for="name">Name</label>
+										<input type="text" name="name" id="name" />
+									</div>
+									<div class="field">
+										<label for="email">Email</label>
+										<input type="text" name="email" id="email" />
+									</div>
+									<div class="field">
+										<label for="message">Message</label>
+										<textarea name="message" id="message" rows="3"></textarea>
+									</div>
+								</div>
+								<ul class="actions">
+									<li><input type="submit" value="Send Message" /></li>
+								</ul>
+							</form>
+						</section>
+						<section class="split contact">
+							<section class="alt">
+								<h3>Address</h3>
+								<p>1234 Somewhere Road #87257<br />
+								Nashville, TN 00000-0000</p>
+							</section>
+							<section>
+								<h3>Phone</h3>
+								<p><a href="#">(000) 000-0000</a></p>
+							</section>
+							<section>
+								<h3>Email</h3>
+								<p><a href="#">info@untitled.tld</a></p>
+							</section>
+							<section>
+								<h3>Social</h3>
+								<ul class="icons alt">
+									<li><a href="#" class="icon brands alt fa-twitter"><span class="label">Twitter</span></a></li>
+									<li><a href="#" class="icon brands alt fa-facebook-f"><span class="label">Facebook</span></a></li>
+									<li><a href="#" class="icon brands alt fa-instagram"><span class="label">Instagram</span></a></li>
+									<li><a href="#" class="icon brands alt fa-github"><span class="label">GitHub</span></a></li>
+								</ul>
+							</section>
+						</section>
+					</footer>
+
+				<!-- Copyright -->
+					<div id="copyright">
+						<ul><li>&copy; Untitled</li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li></ul>
+					</div>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>
