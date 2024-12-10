@@ -294,32 +294,116 @@ in
 							</li>
 						</ol>
 						<p>This process ensures that the data from 2011-2023 is clean, consistently formatted, and ready for analysis.</p>
-						</section>
-						<pre>let
-							Source = Table.Combine({#"2011", #"2012", #"2013", #"2014", #"2015", #"2016", #"2017", #"2018", #"2019", #"2020", #"2021", #"2022", #"2023"}),
-							#"Changed Type" = Table.TransformColumnTypes(Source, {
-							{"Date Event Began", type date}, 
-							{"Time Event Began", type time}, 
-							{"Date of Restoration", type text}, 
-							{"Time of Restoration", type text}
-						}),
-							#"Replaced Value" = Table.ReplaceValue(#"Changed Type","Ongoing",null,Replacer.ReplaceValue,{"Date of Restoration"}),
-							#"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","Unknown",null,Replacer.ReplaceValue,{"Date of Restoration"}),
-							#"Replaced Value2" = Table.ReplaceValue(#"Replaced Value1","Unknown ",null,Replacer.ReplaceValue,{"Date of Restoration"}),
-							#"Replaced Value9" = Table.ReplaceValue(#"Replaced Value2","2077","2011",Replacer.ReplaceText,{"Date of Restoration"}),
-							#"Extracted Text Before Delimiter" = Table.TransformColumns(#"Replaced Value9", {{"Date of Restoration", each Text.BeforeDelimiter(_, " "), type text}}),
-							#"Replaced Value3" = Table.ReplaceValue(#"Extracted Text Before Delimiter","",null,Replacer.ReplaceValue,{"Date of Restoration"}),
-							#"Replaced Value4" = Table.ReplaceValue(#"Replaced Value3","Unkonwn",null,Replacer.ReplaceValue,{"Date of Restoration"}),
-							#"Replaced Value5" = Table.ReplaceValue(#"Replaced Value4","44641","3-23-22",Replacer.ReplaceText,{"Date of Restoration"}),
-							#"Parsed Date" = Table.TransformColumns(#"Replaced Value5",{{"Date of Restoration", each Date.From(DateTimeZone.From(_)), type date}}),
-							#"Replaced Value6" = Table.ReplaceValue(#"Parsed Date","Ongoing",null,Replacer.ReplaceValue,{"Time of Restoration"}),
-							#"Replaced Value7" = Table.ReplaceValue(#"Replaced Value6","Unknown",null,Replacer.ReplaceValue,{"Time of Restoration"}),
-							#"Replaced Value8" = Table.ReplaceValue(#"Replaced Value7","Unknown ",null,Replacer.ReplaceValue,{"Time of Restoration"}),
-							#"Parsed Time" = Table.TransformColumns(#"Replaced Value8",{{"Time of Restoration", each Time.From(DateTimeZone.From(_)), type time}})
-						in
-							#"Parsed Time"</pre>
-					</div>
 
+						<pre>
+	let
+	Source = Table.Combine({#"2011", #"2012", #"2013", #"2014", #"2015", #"2016", #"2017", #"2018", #"2019", #"2020", #"2021", #"2022", #"2023"}),
+	#"Changed Type" = Table.TransformColumnTypes(Source, {
+	{"Date Event Began", type date}, 
+	{"Time Event Began", type time}, 
+	{"Date of Restoration", type text}, 
+	{"Time of Restoration", type text}
+}),
+	#"Replaced Value" = Table.ReplaceValue(#"Changed Type","Ongoing",null,Replacer.ReplaceValue,{"Date of Restoration"}),
+	#"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","Unknown",null,Replacer.ReplaceValue,{"Date of Restoration"}),
+	#"Replaced Value2" = Table.ReplaceValue(#"Replaced Value1","Unknown ",null,Replacer.ReplaceValue,{"Date of Restoration"}),
+	#"Replaced Value9" = Table.ReplaceValue(#"Replaced Value2","2077","2011",Replacer.ReplaceText,{"Date of Restoration"}),
+	#"Extracted Text Before Delimiter" = Table.TransformColumns(#"Replaced Value9", {{"Date of Restoration", each Text.BeforeDelimiter(_, " "), type text}}),
+	#"Replaced Value3" = Table.ReplaceValue(#"Extracted Text Before Delimiter","",null,Replacer.ReplaceValue,{"Date of Restoration"}),
+	#"Replaced Value4" = Table.ReplaceValue(#"Replaced Value3","Unkonwn",null,Replacer.ReplaceValue,{"Date of Restoration"}),
+	#"Replaced Value5" = Table.ReplaceValue(#"Replaced Value4","44641","3-23-22",Replacer.ReplaceText,{"Date of Restoration"}),
+	#"Parsed Date" = Table.TransformColumns(#"Replaced Value5",{{"Date of Restoration", each Date.From(DateTimeZone.From(_)), type date}}),
+	#"Replaced Value6" = Table.ReplaceValue(#"Parsed Date","Ongoing",null,Replacer.ReplaceValue,{"Time of Restoration"}),
+	#"Replaced Value7" = Table.ReplaceValue(#"Replaced Value6","Unknown",null,Replacer.ReplaceValue,{"Time of Restoration"}),
+	#"Replaced Value8" = Table.ReplaceValue(#"Replaced Value7","Unknown ",null,Replacer.ReplaceValue,{"Time of Restoration"}),
+	#"Parsed Time" = Table.TransformColumns(#"Replaced Value8",{{"Time of Restoration", each Time.From(DateTimeZone.From(_)), type time}})
+in
+	#"Parsed Time"</pre>
+						
+											
+						<h2>Combining 2002-2023 and Transforming </h2>
+						
+						<ol>
+							<li><strong>Combining Data:</strong>
+								<p>The datasets from 2002-2010 and 2011-2023 were combined using <code>Table.Combine</code>.</p>
+							</li>
+							<li><strong>Indexing and Reordering:</strong>
+								<ul>
+									<li>An index column was added for reference, starting at 0.</li>
+									<li>The columns were reordered to follow a specific structure.</li>
+								</ul>
+							</li>
+							<li><strong>Data Cleaning:</strong>
+								<ul>
+									<li>Replaced "Unknown", "NA", and other irrelevant text with null in the columns "Demand Loss (MW)", "Number of Customers Affected", and "NERC Region".</li>
+									<li>Trimmed and cleaned the "Event Type" column, converting text to uppercase.</li>
+								</ul>
+							</li>
+							<li><strong>Text Replacement:</strong>
+								<ul>
+									<li>Replaced specific substrings within "Event Type" and "Number of Customers Affected" to standardize the data.</li>
+									<li>Converted descriptive text in "Number of Customers Affected" into numerical values (e.g., replacing "million" with 1,500,000).</li>
+								</ul>
+							</li>
+							<li><strong>Type Conversion and Error Handling:</strong>
+								<ul>
+									<li>Changed data types of "Demand Loss (MW)" and "Number of Customers Affected" to Int64 or text as needed.</li>
+									<li>Replaced errors in the "Demand Loss (MW)" and newly created "Custom" columns with null.</li>
+								</ul>
+							</li>
+							<li><strong>Final Transformation:</strong>
+								<ul>
+									<li>Removed the old "Number of Customers Affected" column and renamed the newly cleaned and transformed column to "Number of customers affected".</li>
+								</ul>
+							</li>
+						</ol>
+						<h2>Query for Combining 2002-2023 and Cleaning.</h2>
+						<pre>
+	let
+	Source = Table.Combine({#"2002-2010", #"2011-2023"}),
+	#"Added Index" = Table.AddIndexColumn(Source, "Index", 0, 1, Int64.Type),
+	#"Reordered Columns" = Table.ReorderColumns(#"Added Index",{"Index", "Date Event Began", "Time Event Began", "Date of Restoration", "Time of Restoration", "Area Affected", "NERC Region", "Event Type", "Demand Loss (MW)", "Number of Customers Affected", "Alert Criteria"}),
+	#"Replaced Value" = Table.ReplaceValue(#"Reordered Columns","Unknown",null,Replacer.ReplaceValue,{"Demand Loss (MW)", "Number of Customers Affected"}),
+	#"Replaced Value3" = Table.ReplaceValue(#"Replaced Value","NA",null,Replacer.ReplaceValue,{"Demand Loss (MW)"}),
+	#"Trimmed Text" = Table.TransformColumns(#"Replaced Value3",{{"Event Type", Text.Trim, type text}}),
+	#"Cleaned Text" = Table.TransformColumns(#"Trimmed Text",{{"Event Type", Text.Clean, type text}}),
+	#"Uppercased Text" = Table.TransformColumns(#"Cleaned Text",{{"Event Type", Text.Upper, type text}}),
+	#"Replaced Value1" = Table.ReplaceValue(#"Uppercased Text","-","",Replacer.ReplaceText,{"Event Type"}),
+	#"Replaced Value2" = Table.ReplaceValue(#"Replaced Value1","N/A",null,Replacer.ReplaceValue,{"NERC Region"}),
+	#"Changed Type" = Table.TransformColumnTypes(#"Replaced Value2",{{"Demand Loss (MW)", Int64.Type}}),
+	#"Replaced Errors" = Table.ReplaceErrorValues(#"Changed Type", {{"Demand Loss (MW)", null}}),
+	#"Changed Type1" = Table.TransformColumnTypes(#"Replaced Errors",{{"Number of Customers Affected", type text}}),
+	#"Replaced Value4" = Table.ReplaceValue(#"Changed Type1","Approx. ","",Replacer.ReplaceValue,{"Number of Customers Affected"}),
+	#"Replaced Value5" = Table.ReplaceValue(#"Replaced Value4","1 PG&E","",Replacer.ReplaceValue,{"Number of Customers Affected"}),
+	#"Replaced Value6" = Table.ReplaceValue(#"Replaced Value5","over ","",Replacer.ReplaceValue,{"Number of Customers Affected"}),
+	#"Replaced Value7" = Table.ReplaceValue(#"Replaced Value6","NA",null,Replacer.ReplaceValue,{"Number of Customers Affected"}),
+	#"Replaced Value8" = Table.ReplaceValue(#"Replaced Value7","peak ","",Replacer.ReplaceText,{"Number of Customers Affected"}),
+	#"Added Conditional Column" = Table.AddColumn(#"Replaced Value8", "Custom", each if Text.Contains([Number of Customers Affected], "million") then 1500000 else [Number of Customers Affected]),
+	#"Changed Type2" = Table.TransformColumnTypes(#"Added Conditional Column",{{"Custom", Int64.Type}}),
+	#"Replaced Errors1" = Table.ReplaceErrorValues(#"Changed Type2", {{"Custom", null}}),
+	#"Removed Columns" = Table.RemoveColumns(#"Replaced Errors1",{"Number of Customers Affected"}),
+	#"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"Custom", "Number of customers affected"}})
+in
+	#"Renamed Columns"
+										</pre>
+				<h3>In order to make clear distiction in states and teritories, the list was taken from the web. </h3>
+				<pre>= Web.BrowserContents("https://en.wikipedia.org/wiki/List_of_states_and_territories_of_the_United_States")</pre>
+				<p>The line of code given above references a table in wikipedia for official state names and teritories.</p>	
+				<h3>Grouped Alert Criterias into 3 types of alert types. (This table is then linked to the main table to be able to use the alert types)</h3>
+				<img src="images/Alert table.png">		
+				<h3>Similarly a table is created to group Event types into Event Categories.</h3>		
+				<img src="images/Events table.png">	
+				<h2>Finally here's the created model after transformation and and creating relationships.</h2>
+				<img src="images/Model.png" width="100%">
+				</div>
+
+
+
+
+						</section>
+						
+				
+				
 				<!-- Footer -->
 					<footer id="footer">
 						<section>
