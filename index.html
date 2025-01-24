@@ -50,7 +50,7 @@
 
 				<!-- Main -->
 					<div id="main">
-
+						<section class="post">
 						<!-- Featured Post -->
 							<article class="post featured">
 								<header class="major">
@@ -61,23 +61,41 @@
 										and created a dashboard to explore and visualize electric grid outages<br />
 										over a 20-year period.</p>
 								</header>
-								<a href="#" class="image main"><img src="images/Screenshot 2024-06-04 183255.png" alt="Dashboard" /></a>
+								<a href="PowerGrid.html" class="image main"><img src="images/Screenshot 2024-06-04 183255.png" alt="Dashboard" /></a>
 								<ul class="actions special">
 									<li><a href="PowerGrid.html" class="button large">Full Project</a></li>
 								</ul>
 							</article>
+							
 							<article class="post featured">
 								<header class="major">
-									<span class="date">May 2024</span>
-									<h2><a href="#">UK Railway Report<br />
-										Exploratory dashboard</a></h2>
-									<p>A comprehensive analysis on National Railway UK performance. </p>
+								  <span class="date">May 2024</span>
+								  <h2>
+									<a href="UKrail.html">UK Railway Report<br />Exploratory dashboard</a>
+								  </h2>
+								  <p>A comprehensive analysis on National Railway UK performance.</p>
 								</header>
-								<a href="#" class="image main"><img src="images/UK rail report.png" alt="Dashboard" /></a>
+							  
+								<!-- Slider Container -->
+								<div class="slider">
+								  <div class="slides">
+									<div class="slide">
+									  <img src="images/UK rail report.png" href="UKrail.html" alt="Dashboard 1" />
+									</div>
+									<div class="slide">
+									  <img src="images/UK rail report Revenue.png" href="UKrail.html" alt="Dashboard 2" />
+									</div>
+								  </div>
+							  
+								  <!-- Navigation Buttons -->
+								  <button class="prev">❮</button>
+								  <button class="next">❯</button>
+								</div>
+							  
 								<ul class="actions special">
-									<li><a href="#" class="button large">Full Story</a></li>
+								  <li><a href="CovidReport.html" class="button large">Full Project</a></li>
 								</ul>
-							</article>
+							  </article>
 							<article class="post featured">
 								<header class="major">
 									<span class="date">August 2023</span>
@@ -85,12 +103,12 @@
 									WHO Global Data</a></h2>
 									<p>Statistical report of cases, vaccines and deaths globally during the Covid-19 Pandemic.</p>
 								</header>
-								<a href="#" class="image main"><img src="images/Covid.png" alt="Covid Dashboard"  /></a>
+								<a href="CovidReport.html" class="image main"><img src="images/Covid.png" alt="Covid Dashboard"  /></a>
 								<ul class="actions special">
-									<li><a href="#" class="button large">Full Story</a></li>
+									<li><a href="CovidReport.html" class="button large">Full Story</a></li>
 								</ul>
 							</article>
-						
+						</section>
 
 						
 
@@ -107,6 +125,20 @@
 			<script src="assets/js/breakpoints.min.js"></script>
 			<script src="assets/js/util.js"></script>
 			<script src="assets/js/main.js"></script>
-
+			<script>
+				let currentIndex = 0;
+				const slides = document.querySelector('.slides');
+				const slideCount = document.querySelectorAll('.slide').length;
+				
+				document.querySelector('.next').addEventListener('click', () => {
+				  currentIndex = (currentIndex + 1) % slideCount;
+				  slides.style.transform = `translateX(-${currentIndex * 100}%)`;
+				});
+				
+				document.querySelector('.prev').addEventListener('click', () => {
+				  currentIndex = (currentIndex - 1 + slideCount) % slideCount;
+				  slides.style.transform = `translateX(-${currentIndex * 100}%)`;
+				});
+				</script>
 	</body>
 </html>

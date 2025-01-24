@@ -1,0 +1,206 @@
+<!DOCTYPE HTML>
+<!--
+	Massively by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+
+	<head>
+		<title>UK Railway Report</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+		<style>
+			pre {
+				background-color: #f4f4f4;
+				border: 1px solid #ddd;
+				padding: 10px;
+				overflow-x: auto;
+			}
+		</style>
+	</head>
+	<body class="is-preload">
+
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<a href="index.html" class="logo">Back</a>
+					</header>
+
+				<!-- Nav -->
+					<nav id="nav">
+						<ul class="links">
+							<li class="active"><a href="generic.html">ETL</a></li>
+							<li><a href="index.html">Visuals and DAX</a></li>
+							<li><a href="elements.html">Data Files</a></li>
+						</ul>
+						
+					</nav>
+
+				<!-- Main -->
+					<div id="main">
+                        <div class="query-documentation">
+                            <h2>Order Route Query Documentation</h2>
+                            <p>This query processes the "Order Route" dataset by focusing on route and time data while performing essential transformations to enhance usability and readability.</p>
+                          
+                            <h3>Steps:</h3>
+                            <ol>
+                              <li><strong>Removed Columns:</strong> Unnecessary columns such as <code>Date of Purchase</code>, <code>Time of Purchase</code>, <code>Purchase Type</code>, and others were excluded.</li>
+                              <li>
+                                <strong>Added Columns:</strong>
+                                <ul>
+                                  <li>Created <code>Departure - Arrival Time</code> by concatenating <code>Departure Time</code> and <code>Arrival Time</code>.</li>
+                                  <li>Calculated <code>Delay</code> as the difference between <code>Actual Arrival Time</code> and <code>Arrival Time</code>.</li>
+                                </ul>
+                              </li>
+                              <li>
+                                <strong>Duplicated Columns:</strong>
+                                <ul>
+                                  <li>Duplicated <code>Departure Time</code> for custom formatting as <code>Departure Time HH-MM</code>.</li>
+                                  <li>Duplicated <code>Date of Journey</code> to extract the day of the week as <code>Dayname</code>.</li>
+                                </ul>
+                              </li>
+                              <li>
+                                <strong>Replaced Values:</strong>
+                                <ul>
+                                  <li>Replaced abbreviations like <code>Stafford</code> with full names such as <code>Stafford Railway Station</code>.</li>
+                                  <li>Standardized delay reasons, e.g., <code>Signal failure</code> became <code>Signal Failure</code>.</li>
+                                </ul>
+                              </li>
+                              <li>
+                                <strong>Extracted Values:</strong>
+                                <ul>
+                                  <li>Converted <code>Delay</code> into minutes for numerical analysis.</li>
+                                </ul>
+                              </li>
+                            </ol>
+                          
+                            <h3>Outcome:</h3>
+                            <p>The resulting table includes the following fields:</p>
+                            <ul>
+                              <li><code>Departure Time</code></li>
+                              <li><code>Arrival Time</code></li>
+                              <li><code>Departure - Arrival Time</code></li>
+                              <li><code>Delay</code> (in minutes)</li>
+                              <li><code>Arrival Destination</code></li>
+                              <li><code>Date of Journey</code></li>
+                              <li><code>Dayname</code></li>
+                              <li><code>Reason for Delay</code></li>
+                            </ul>
+                          
+                            <h3>Notes:</h3>
+                            <ul>
+                              <li>Columns such as <code>Price</code> and <code>Railcard</code> were removed as they were irrelevant to route and time analysis.</li>
+                              <li>Ensure consistency when replacing station names and delay reasons to maintain data integrity.</li>
+                            </ul>
+
+                            <h3>Power Query M Code for the given steps</h3>
+    						<pre>
+    let
+    Source = railway,
+    #"Removed Columns" = Table.RemoveColumns(Source,{"Date of Purchase", "Time of Purchase", "Purchase Type", "Payment Method", "Railcard", "Ticket Class", "Ticket Type", "Price"}),
+    #"Added Custom" = Table.AddColumn(#"Removed Columns", "Departure - Arrival Time", each Text.From([Departure Time])  & " - " & Text.From([Arrival Time])),
+    #"Added Custom1" = Table.AddColumn(#"Added Custom", "Delay", each [Actual Arrival Time] -[Arrival Time]),
+    #"Duplicated Column" = Table.DuplicateColumn(#"Added Custom1", "Departure Time", "Departure Time - Copy"),
+    #"Renamed Columns" = Table.RenameColumns(#"Duplicated Column",{{"Departure Time - Copy", "Departure Time HH-MM"}}),
+    #"Removed Columns1" = Table.RemoveColumns(#"Renamed Columns",{"Departure Time HH-MM"}),
+    #"Duplicated Column1" = Table.AddColumn(#"Removed Columns1", "Departure Time HH-MM", each Text.From([Departure Time], "en-AE"), type text),
+    #"Replaced Value" = Table.ReplaceValue(#"Duplicated Column1","Stafford","Stafford Railway Station",Replacer.ReplaceText,{"Arrival Destination"}),
+    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","Durham","Durham Railway Station",Replacer.ReplaceText,{"Arrival Destination"}),
+    #"Duplicated Column2" = Table.DuplicateColumn(#"Replaced Value1", "Date of Journey", "Date of Journey - Copy"),
+    #"Extracted Day Name" = Table.TransformColumns(#"Duplicated Column2", {{"Date of Journey - Copy", each Date.DayOfWeekName(_), type text}}),
+    #"Renamed Columns1" = Table.RenameColumns(#"Extracted Day Name",{{"Date of Journey - Copy", "Dayname"}}),
+    #"Replaced Value2" = Table.ReplaceValue(#"Renamed Columns1","Sheffield","Sheffield Station",Replacer.ReplaceText,{"Arrival Destination"}),
+    #"Extracted Minutes" = Table.TransformColumns(#"Replaced Value2",{{"Delay", Duration.Minutes, Int64.Type}}),
+    #"Replaced Value3" = Table.ReplaceValue(#"Extracted Minutes","Weather Conditions","Weather",Replacer.ReplaceText,{"Reason for Delay"}),
+    #"Replaced Value4" = Table.ReplaceValue(#"Replaced Value3","Signal failure","Signal Failure",Replacer.ReplaceText,{"Reason for Delay"}),
+    #"Replaced Value5" = Table.ReplaceValue(#"Replaced Value4","Staffing","Staff Shortage",Replacer.ReplaceText,{"Reason for Delay"})
+in
+    #"Replaced Value5"
+    						</pre>
+                          </div>
+                          
+
+                          <div class="query-documentation">
+                            <h2>Route Details Query Documentation</h2>
+                            <p>This query processes the "Route Details" dataset by enriching and transforming route-related data, including station and city names.</p>
+                          
+                            <h3>Steps:</h3>
+                            <ol>
+                              <li>
+                                <strong>Removed Other Columns:</strong> Selected only relevant columns: 
+                                <code>Transaction ID</code>, <code>Departure Station</code>, and <code>Arrival Destination</code>.
+                              </li>
+                              <li>
+                                <strong>Merged Queries:</strong> 
+                                <ul>
+                                  <li>Performed a left outer join with the <code>City names</code> query using <code>Arrival Destination</code> and <code>Station</code> as keys.</li>
+                                  <li>Expanded the joined table to retrieve the <code>City</code> corresponding to the arrival station, renamed as <code>Arrival City</code>.</li>
+                                </ul>
+                              </li>
+                              <li>
+                                <strong>Reordered Columns:</strong> Organized columns to maintain clarity by ordering them as <code>Arrival Destination</code>, <code>Arrival City</code>, and <code>Departure Station</code>.
+                              </li>
+                              <li>
+                                <strong>Merged Queries (Departure Station):</strong> 
+                                <ul>
+                                  <li>Performed a second left outer join with the <code>City names</code> query using <code>Departure Station</code> and <code>Station</code> as keys.</li>
+                                  <li>Expanded the joined table to retrieve the <code>City</code> corresponding to the departure station, renamed as <code>Departure City</code>.</li>
+                                </ul>
+                              </li>
+                              <li>
+                                <strong>Added Columns:</strong> 
+                                <ul>
+                                  <li><code>City-City:</code> Concatenated <code>Departure City</code> and <code>Arrival City</code> with " - " as a separator.</li>
+                                  <li><code>Station-Station:</code> Concatenated <code>Departure Station</code> and <code>Arrival Station</code> with " - " as a separator.</li>
+                                </ul>
+                              </li>
+                              <li>
+                                <strong>Renamed Columns:</strong> Finalized column names by renaming <code>Arrival Destination</code> to <code>Arrival Station</code>.
+                              </li>
+                            </ol>
+                          
+                            <h3>Outcome:</h3>
+                            <p>The resulting table includes the following fields:</p>
+                            <ul>
+                              <li><code>Transaction ID</code></li>
+                              <li><code>Departure Station</code></li>
+                              <li><code>Arrival Station</code></li>
+                              <li><code>Departure City</code></li>
+                              <li><code>Arrival City</code></li>
+                              <li><code>City-City</code></li>
+                              <li><code>Station-Station</code></li>
+                            </ul>
+                          
+                            <h3>Notes:</h3>
+                            <ul>
+                              <li>The query enriches the route details with city information, making the data more user-friendly for analysis.</li>
+                              <li>Ensure consistency in station names in the <code>City names</code> dataset to avoid mismatches during the join operations.</li>
+                            </ul>
+                            <h3>Power Query M Code for the given steps</h3>
+                            <pre>
+      let
+      Source = #"Order Route",
+      #"Removed Other Columns" = Table.SelectColumns(Source,{"Transaction ID", "Departure Station", "Arrival Destination"}),
+      #"Merged Queries" = Table.NestedJoin(#"Removed Other Columns", {"Arrival Destination"}, #"City names", {"Station"}, "City names", JoinKind.LeftOuter),
+      #"Expanded City names" = Table.ExpandTableColumn(#"Merged Queries", "City names", {"City"}, {"City"}),
+      #"Renamed Columns" = Table.RenameColumns(#"Expanded City names",{{"City", "Arrival City"}}),
+      #"Reordered Columns" = Table.ReorderColumns(#"Renamed Columns",{"Arrival Destination", "Arrival City", "Departure Station"}),
+      #"Merged Queries1" = Table.NestedJoin(#"Reordered Columns", {"Departure Station"}, #"City names", {"Station"}, "City names", JoinKind.LeftOuter),
+      #"Expanded City names1" = Table.ExpandTableColumn(#"Merged Queries1", "City names", {"City"}, {"City"}),
+      #"Renamed Columns1" = Table.RenameColumns(#"Expanded City names1",{{"City", "Departure City"}}),
+      #"Added Custom" = Table.AddColumn(#"Renamed Columns1", "City-City", each [Departure City] & " - " & [Arrival City]),
+      #"Added Custom1" = Table.AddColumn(#"Added Custom", "Station-Station", each [Departure Station] & " - " & [Arrival Destination]),
+      #"Renamed Columns2" = Table.RenameColumns(#"Added Custom1",{{"Arrival Destination", "Arrival Station"}})
+  in
+      #"Renamed Columns2"
+                            </pre>                            
+                          </div>
+                          <h2>here's the model after transformation and creating relationships.</h2>
+                          <img src="images/UKmodel.png" width="100%">                  
+                    </div>
+                </body></html>
